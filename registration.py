@@ -1,3 +1,5 @@
+from database.session import SessionLocal
+from services.auth_service import register_user, UserAlreadyExistsError
 import flet as ft
 import theme
 
@@ -63,21 +65,42 @@ def main(page: ft.Page):
     )
 
     def register(e):
+        username = login_field.value.strip()
+        password = password_field.value
+        confirm_password = confirm_password_field.value
+
         if (
-            not login_field.value
-            or not password_field.value
-            or not confirm_password_field.value
+            not username
+            or not password
+            or not confirm_password
         ):
             message.value = "Заполните все поля!"
             message.color = theme.DANGER
 
-        elif password_field.value != confirm_password_field.value:
+        elif password != confirm_password:
              message.value = "Пароли не совпадают!"
              message.color = theme.DANGER
 
         else:
-            message.value = "Регистрация прошла успешно!"
-            message.color = theme.SUCCESS
+            db = SessionLocal()
+
+            try:
+                user = register_user(db, username, password)
+
+                message.value = "Регистрация прошла успешно!"
+                message.color = theme.SUCCESS
+
+            except UserAlreadyExistsError:
+                message.value = "Такой логин уже занят!"
+                message.color = theme.DANGER
+
+            except Exception as error:
+                message.value = "Ошибка регистрации!"
+                message.color = theme.DANGER
+                print(error)
+
+            finally:
+                db.close()
 
         page.update()
 
