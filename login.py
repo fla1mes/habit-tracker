@@ -1,6 +1,9 @@
 import flet as ft
 import theme
 
+from services.auth_service import authenticate_user,InvalidCredentialsError
+from database.session import SessionLocal
+
 def build_login_view(page: ft.Page, on_login_success, on_go_to_register):
     login_field = ft.TextField(
         label = "Логин",
@@ -40,9 +43,19 @@ def build_login_view(page: ft.Page, on_login_success, on_go_to_register):
         if not login_field.value or not password_field.value:
             message.value = "Заполните логин и пароль!"
             message.color = theme.DANGER
-        else:
+            page.update()
+            return
+        db = SessionLocal()
+        try:
+            user = authenticate_user(db, login_field.value,password_field.value)
             message.value=""
+            page.user_name = user.username
             on_login_success()
+        except InvalidCredentialsError:
+            message.value = "Неверный логин или пароль!"
+            message.color = theme.DANGER
+        finally:
+            db.close()
         page.update()
 
     login_button = ft.Button(
@@ -52,8 +65,7 @@ def build_login_view(page: ft.Page, on_login_success, on_go_to_register):
         bgcolor = theme.PRIMARY,
         color=theme.BACKGROUND,
         on_click = handle_login_click,
-        style = ft.ButtonStyle(
-            shape=ft.RoundedRectangleBorder(radius=theme.BUTTON_RADIUS),)
+
     )
 
     register_link=ft.TextButton(
@@ -68,17 +80,21 @@ def build_login_view(page: ft.Page, on_login_success, on_go_to_register):
     login_card = ft.Container(
         content = ft.Column(
             controls = [
+                ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE,size=60,color=theme.PRIMARY),
                 ft.Text(
-                    "Вход в аккаунт",
+                    "Habit Tracker",
                     size=theme.TITLE_SIZE,
                     weight=ft.FontWeight.BOLD,
                     color = theme.TEXT,
                 ),
                 ft.Text(
-                    "Введите логин и пароль",
+                    "Отслеживай свои привычки",
                     size=theme.SUBTITLE_SIZE,
                     color=theme.TEXT_SECONDARY,
                 ),
+
+                ft.Divider(height=20,color=ft.Colors.TRANSPARENT),
+
                 login_field,
                 password_field,
 
