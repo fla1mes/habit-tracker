@@ -8,11 +8,12 @@ def build_login_view(page: ft.Page, on_login_success, on_go_to_register):
         width = theme.INPUT_WIDTH,
         height = theme.INPUT_HEIGHT,
         bgcolor = theme.INPUT_BG,
-        border_color= theme.BORDER,
-        border_radius= theme.INPUT_RADIUS,
-        border_width = theme.INPUT_BORDER_WIDTH,
-        color= theme.TEXT,
-        label_style = ft.TextStyle(color = theme.TEXT_SECONDARY),
+        border = ft.OutlineInputBorder(
+            border_radius= theme.INPUT_RADIUS,
+            side = ft.BorderSide(
+                color = theme.BORDER,
+                width = theme.INPUT_BORDER_WIDTH)),
+        text_size = theme.TEXT_SIZE,
     )
 
     password_field = ft.TextField(
@@ -23,80 +24,96 @@ def build_login_view(page: ft.Page, on_login_success, on_go_to_register):
         width=theme.INPUT_WIDTH,
         height = theme.INPUT_HEIGHT,
         bgcolor=theme.INPUT_BG,
-        border_color=theme.BORDER,
-        border_radius=theme.INPUT_RADIUS,
-        border_width=theme.INPUT_BORDER_WIDTH,
-        color=theme.TEXT,
-        label_style=ft.TextStyle(color=theme.TEXT_SECONDARY),
+        border=ft.OutlineInputBorder(
+            border_radius=theme.INPUT_RADIUS,
+            side=ft.BorderSide(
+                color=theme.BORDER,
+                width=theme.INPUT_BORDER_WIDTH)),
+        text_size=theme.TEXT_SIZE,
+    )
+    message = ft.Text(
+        size = theme.TEXT_SIZE,
+        text_align = ft.TextAlign.CENTER,
     )
 
     def handle_login_click(e):
         if not login_field.value or not password_field.value:
-            snack = ft.SnackBar(
-                content = ft.Text("Заполните логин и пароль!", color=ft.Colors.WHITE),
-                bgcolor = theme.DANGER,
-            )
-            page.overlay.append(snack)
-            snack.open=True
-            page.update()
-            return
-
-        on_login_success()
+            message.value = "Заполните логин и пароль!"
+            message.color = theme.DANGER
+        else:
+            message.value=""
+            on_login_success()
+        page.update()
 
     login_button = ft.Button(
         content = "Войти",
         width = theme.BUTTON_WIDTH,
         height = theme.BUTTON_HEIGHT,
-
-        color = ft.Colors.WHITE,
+        bgcolor = theme.PRIMARY,
+        color=theme.BACKGROUND,
         on_click = handle_login_click,
-        style = ft.ButtonStyle(bgcolor = theme.PRIMARY,shape=ft.RoundedRectangleBorder(radius=theme.BUTTON_RADIUS),)
+        style = ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=theme.BUTTON_RADIUS),)
     )
 
-    register_row = ft.Row(
-        [
-            ft.Text(
-                "Нет аккаунта?",
-                color=theme.TEXT_SECONDARY,
-                size=theme.TEXT_SIZE,
-            ),
-            ft.TextButton(
-                content="Зарегистрироваться",
-                style=ft.ButtonStyle(
-                    color=theme.PRIMARY,
-                    padding=0,
+    register_link=ft.TextButton(
+        content = "Зарегистрироваться",
+        on_click=lambda e: on_go_to_register(),
+        style = ft.ButtonStyle(
+            color = theme.PRIMARY,
+            padding = ft.Padding.symmetric(horizontal=5,vertical = 0),
+        ),
+    )
+
+    login_card = ft.Container(
+        content = ft.Column(
+            controls = [
+                ft.Text(
+                    "Вход в аккаунт",
+                    size=theme.TITLE_SIZE,
+                    weight=ft.FontWeight.BOLD,
+                    color = theme.TEXT,
                 ),
-                on_click=lambda e: on_go_to_register(),
-            ),
-        ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        spacing=0,
-    )
-
-    return ft.Container(
-        content=ft.Column(
-            [
-                ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, size=60, color=theme.PRIMARY),
-                ft.Text("Habit Tracker", size=theme.TITLE_SIZE, weight=ft.FontWeight.BOLD, color=theme.TEXT),
-                ft.Text("Отслеживай свои привычки", size=theme.SUBTITLE_SIZE, color=theme.TEXT_SECONDARY),
-
-                ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
-
+                ft.Text(
+                    "Введите логин и пароль",
+                    size=theme.SUBTITLE_SIZE,
+                    color=theme.TEXT_SECONDARY,
+                ),
                 login_field,
                 password_field,
 
-                ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
-
                 login_button,
 
-                ft.Divider(height=5, color=ft.Colors.TRANSPARENT),
+                message,
 
-                register_row,
+                ft.Row(
+                    controls =[
+                        ft.Text(
+                            "Нет аккаунта?",
+                            size =theme.TEXT_SIZE,
+                            color = theme.TEXT_SECONDARY,
+                        ),
+                        register_link,
+                    ],
+                    alignment = ft.MainAxisAlignment.CENTER,
+                    spacing=5,
+                ),
             ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=15,
+            horizontal_alignment = ft.CrossAxisAlignment.CENTER,
             alignment=ft.MainAxisAlignment.CENTER,
         ),
+        width =400,
+        height = 500,
+        padding = 30,
+        bgcolor = theme.BACKGROUND,
+        border =ft.Border.all(1,theme.BORDER),
+        border_radius=20,
+    )
+
+    return ft.Container(
+        content = login_card,
         expand=True,
         bgcolor=theme.BACKGROUND,
-        padding=20,
+        alignment = ft.Alignment(0,0)
     )
